@@ -18,48 +18,16 @@ else
 end
 
 
-tmp = textread(fullfile(directory,d(1).name));
-numRows = tmp(1);
-tmp = tmp(2:end,1:5);
-
-% ind = (tmp(:,1)~=-1 & tmp(:,2)~=-2);
-% tmp = tmp(ind,:);
-
-% if ~isempty(tmp)
-data(1).prev = tmp(:,1);
-data(1).next = tmp(:,2);
-
-data(1).xr = tmp(:,3);
-data(1).yr = tmp(:,4);
-data(1).zr = tmp(:,5);
+[data(1).prev, data(1).next, data(1).xr, data(1).yr, data(1).zr] = ... 
+	textread(fullfile(directory,d(1).name), '%d %d %f %f %f', 'headerlines', 1);
 
 [junk,junk,ext,junk] = fileparts(fullfile(directory,d(1).name));
 data(1).t = str2double(ext(2:end));
-% end
-
-last-first+1
-data(last-first+1) = data(1);
 
 for k = first+1:last
-    % for i = 1:40000
     i = k - first + 1;
-    tmp = textread(fullfile(directory,d(i).name));
-    numRows = tmp(1);
-    tmp = tmp(2:end,1:5);
-
-    %     ind = (tmp(:,1)~=0 & tmp(:,2)~=-1);
-    %     tmp = tmp(ind,:);
-
-    
-    data(i).prev = tmp(:,1);
-    data(i).next = tmp(:,2);
-
-
-    data(i).xr = tmp(:,3);
-    data(i).yr = tmp(:,4);
-    data(i).zr = tmp(:,5);
+	[data(i).prev, data(i).next, data(i).xr, data(i).yr, data(i).zr] = ... 
+		textread(fullfile(directory,d(i).name), '%d %d %f %f %f', 'headerlines', 1);
 
     data(i).t = data(i-1).t + 1;
-    clear tmp
-    %
 end

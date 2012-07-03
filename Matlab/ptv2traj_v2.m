@@ -41,11 +41,11 @@ idl = find(len > minLength); % only long ones
 traj = repmat(struct('xf',[],'yf',[],'zf',[],'uf',[],'vf',[],'wf',[],...
     'axf',[],'ayf',[],'azf',[],'t',[],'trajid',[]),length(idl),1);
 
-h = waitbar(0,'Please wait ...');
+%h = waitbar(0,'Please wait ...');
 for k = 1:length(idl)
     
     i = idl(k);
-    waitbar(k/length(idl),h);
+    %waitbar(k/length(idl),h);
     
     traj(k).xf = tmp(first(i):last(i),1);
     traj(k).yf = tmp(first(i):last(i),2);
