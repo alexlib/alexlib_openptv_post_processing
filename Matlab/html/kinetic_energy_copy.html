@@ -1,0 +1,321 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      --><title>kinetic_energy_copy</title><meta name="generator" content="MATLAB 7.10"><meta name="date" content="2012-04-07"><meta name="m-file" content="kinetic_energy_copy"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><pre class="codeinput">clear <span class="string">all</span>
+
+dist = @(x,y) sqrt((x(1,:)-y(1)).^2 + (x(2,:)-y(2)).^2 + (x(3,:)-y(3)).^2);
+
+<span class="keyword">if</span> ismac
+    matdirectory = <span class="string">'/Users/alex/Dropbox/resuspension/2011/trajectories(186-194)'</span>;
+<span class="keyword">else</span>
+    matdirectory =<span class="string">'C:\Users\hadar\Dropbox\resuspension\2011\trajectories(186-194)'</span>;
+<span class="keyword">end</span>
+
+large_ones = dir(fullfile(matdirectory,<span class="string">'large*'</span>));
+
+time_of_event = {};
+data_large = {};
+data_small = {};
+
+
+R = 10;
+
+
+<span class="keyword">for</span> kFiles = 1:12<span class="comment">% length(large_ones)</span>
+
+    <span class="comment">% get the name of the data</span>
+    filename = large_ones(kFiles).name;
+    [path,filename,ext] = fileparts(filename);
+
+
+
+
+    <span class="comment">% Load the largeXXXX.mat</span>
+    large = load(fullfile(matdirectory,filename));
+    <span class="comment">% and rename it to 'large'</span>
+    large = large.(filename);
+    <span class="comment">% Load the eventsXXXXX.mat</span>
+    events = load(fullfile(matdirectory,strrep(filename,<span class="string">'large'</span>,<span class="string">'events'</span>)));
+
+    <span class="comment">% Load the small particle data and rename to 'small'</span>
+    small = load(fullfile(matdirectory,strrep(filename,<span class="string">'large'</span>,<span class="string">'small'</span>)));
+    small = small.(strrep(filename,<span class="string">'large'</span>,<span class="string">'small'</span>));
+
+    numEvents = size(events.events,1);
+    numSmallTraj = length(small);
+
+    trajIds = unique(cat(1,large.trajid));
+
+
+
+    <span class="keyword">for</span> iEvents = 1:numEvents
+        <span class="comment">% Select the trajectory and the time of event</span>
+        time_of_event{kFiles,iEvents} = events.events(iEvents,2);
+        trajind = trajIds == events.events(iEvents,1);
+
+        <span class="comment">% Take the single trajectory in which we had an event aside into</span>
+        <span class="comment">% the temprorary 'data'</span>
+
+        data = large(trajind);
+
+
+        <span class="comment">% Along that trajectory, at each time step</span>
+
+        <span class="keyword">for</span> ind = 1:length(data.t)
+
+            xp = data.xf(ind);
+            yp = data.yf(ind);
+            zp = data.zf(ind);
+            up = data.uf(ind);
+            vp = data.vf(ind);
+            wp = data.wf(ind);
+            kinetic_energy_p = 1/3* (up^2 + vp^2 + wp^2 );
+
+            <span class="comment">% storage</span>
+            data_large{kFiles,iEvents,ind} = kinetic_energy_p;
+
+            counter = 0;
+            tmp_kinetic_energy = 0;
+
+            <span class="keyword">for</span> j = 1:numSmallTraj <span class="comment">% for all small ones</span>
+
+                distance = dist([small(j).xf,small(j).yf,small(j).zf]',[xp,yp,zp])';
+
+                relevant = find(small(j).t == data.t(ind) &amp;  distance &lt;= R);
+
+                <span class="keyword">if</span> ~isempty(relevant)
+
+                    tmp = small(j);
+                    tmp.uf = tmp.uf(relevant);
+                    tmp.vf = tmp.vf(relevant);
+                    tmp.wf = tmp.wf(relevant);
+
+                    tmp_kinetic_energy = tmp_kinetic_energy +1/3 *(tmp.uf^2+ tmp.vf^2 + tmp.wf^2);
+
+                    counter = counter + 1;
+
+                    <span class="comment">% if verbose,plot_long_trajectories(tmp(relevant),1,hf);   end</span>
+
+                <span class="keyword">end</span> <span class="comment">% relevant</span>
+            <span class="keyword">end</span> <span class="comment">% smalltraj</span>
+
+            data_small{kFiles,iEvents,ind} =  tmp_kinetic_energy / counter;
+            time_data_small{kFiles, iEvents,ind} = data.t(ind);
+
+            <span class="comment">% i= number of events</span>
+            <span class="comment">%ind= time of event</span>
+
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+save <span class="string">kinetic_energy_copy.mat</span>
+</pre><pre class="codeinput">figure, hold <span class="string">on</span>,
+<span class="keyword">for</span> kFiles = 1:size(data_small,1)
+    <span class="keyword">for</span> iEvents = 1:size(data_small,2)
+        <span class="keyword">if</span> ~isempty([time_of_event{kFiles,iEvents}])
+            plot([time_data_small{kFiles,iEvents,:}]-[time_data_small{kFiles,iEvents,1}],[data_small{kFiles,iEvents,:}]);
+            plot([time_of_event{kFiles,iEvents}]-[time_data_small{kFiles,iEvents,1}],0,<span class="string">'ro'</span>);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+hold <span class="string">off</span>
+</pre><img vspace="5" hspace="5" src="kinetic_energy_copy_01.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.10<br></p></div><!--
+##### SOURCE BEGIN #####
+clear all
+
+dist = @(x,y) sqrt((x(1,:)-y(1)).^2 + (x(2,:)-y(2)).^2 + (x(3,:)-y(3)).^2);
+
+if ismac
+    matdirectory = '/Users/alex/Dropbox/resuspension/2011/trajectories(186-194)';
+else
+    matdirectory ='C:\Users\hadar\Dropbox\resuspension\2011\trajectories(186-194)';
+end
+
+large_ones = dir(fullfile(matdirectory,'large*'));
+
+time_of_event = {};
+data_large = {};
+data_small = {};
+
+
+R = 10;
+
+
+for kFiles = 1:12% length(large_ones)
+    
+    % get the name of the data
+    filename = large_ones(kFiles).name;
+    [path,filename,ext] = fileparts(filename);
+    
+    
+    
+    
+    % Load the largeXXXX.mat
+    large = load(fullfile(matdirectory,filename));
+    % and rename it to 'large'
+    large = large.(filename);
+    % Load the eventsXXXXX.mat
+    events = load(fullfile(matdirectory,strrep(filename,'large','events')));
+    
+    % Load the small particle data and rename to 'small'
+    small = load(fullfile(matdirectory,strrep(filename,'large','small')));
+    small = small.(strrep(filename,'large','small'));
+    
+    numEvents = size(events.events,1);
+    numSmallTraj = length(small);
+    
+    trajIds = unique(cat(1,large.trajid));
+    
+    
+    
+    for iEvents = 1:numEvents
+        % Select the trajectory and the time of event
+        time_of_event{kFiles,iEvents} = events.events(iEvents,2);
+        trajind = trajIds == events.events(iEvents,1);
+        
+        % Take the single trajectory in which we had an event aside into
+        % the temprorary 'data'
+        
+        data = large(trajind);
+        
+        
+        % Along that trajectory, at each time step
+        
+        for ind = 1:length(data.t)
+            
+            xp = data.xf(ind);
+            yp = data.yf(ind);
+            zp = data.zf(ind);
+            up = data.uf(ind);
+            vp = data.vf(ind);
+            wp = data.wf(ind);
+            kinetic_energy_p = 1/3* (up^2 + vp^2 + wp^2 );
+            
+            % storage
+            data_large{kFiles,iEvents,ind} = kinetic_energy_p;
+            
+            counter = 0;
+            tmp_kinetic_energy = 0;
+            
+            for j = 1:numSmallTraj % for all small ones
+                
+                distance = dist([small(j).xf,small(j).yf,small(j).zf]',[xp,yp,zp])';
+                
+                relevant = find(small(j).t == data.t(ind) &  distance <= R);
+                
+                if ~isempty(relevant)
+                    
+                    tmp = small(j);
+                    tmp.uf = tmp.uf(relevant);
+                    tmp.vf = tmp.vf(relevant);
+                    tmp.wf = tmp.wf(relevant);
+                    
+                    tmp_kinetic_energy = tmp_kinetic_energy +1/3 *(tmp.uf^2+ tmp.vf^2 + tmp.wf^2);
+                    
+                    counter = counter + 1;
+                    
+                    % if verbose,plot_long_trajectories(tmp(relevant),1,hf);   end
+                    
+                end % relevant
+            end % smalltraj
+            
+            data_small{kFiles,iEvents,ind} =  tmp_kinetic_energy / counter;
+            time_data_small{kFiles, iEvents,ind} = data.t(ind);
+            
+            % i= number of events
+            %ind= time of event
+            
+        end
+    end
+end
+
+save kinetic_energy_copy.mat
+
+
+%%
+figure, hold on,
+for kFiles = 1:size(data_small,1)
+    for iEvents = 1:size(data_small,2)
+        if ~isempty([time_of_event{kFiles,iEvents}])
+            plot([time_data_small{kFiles,iEvents,:}]-[time_data_small{kFiles,iEvents,1}],[data_small{kFiles,iEvents,:}]);
+            plot([time_of_event{kFiles,iEvents}]-[time_data_small{kFiles,iEvents,1}],0,'ro');
+        end
+    end
+end
+hold off
+
+
+
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
