@@ -84,9 +84,9 @@ for i = 1:numEvents
     
       if ind
     for j = 1:numTraj
-       [tf,loc] = ismember((time_of_event+time_interval),small(j).t);
+        [tf,loc] = ismember((time_of_event+time_interval),(small(j).t+time_interval));
         
-%         %[tf,loc] = ismember(time_of_event,small(j).t);
+        %[tf,loc] = ismember(time_of_event,small(j).t);
         
         if tf % i.e. if this small trajectory is also appearing at that time
             

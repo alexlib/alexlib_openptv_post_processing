@@ -1,4 +1,4 @@
-uiopen('drag_110.fig',1);
+uiopen('drag_110_25.fig',1);
 % uiopen('/Users/alex/Downloads/drag_force_first.fig',1)
 % select the blue line
 hl = sort(findobj(1,'type','line','Color',[0 0 1])); % all the blue lines
@@ -56,7 +56,7 @@ ind = yd > thresh & xd <= xde;
 
 % subtract the threshold and get the area under the curve
 yd = yd - thresh;
-area(i) = trapz(xd,yd);
+area(i) = trapz(xd,yd)/160;
 set(hl(i),'DisplayName',sprintf('%6.4f',area(i)));
 
 % figure, plot(xd(ind),yd(ind),xde,yde,'o')
@@ -64,7 +64,7 @@ set(hl(i),'DisplayName',sprintf('%6.4f',area(i)));
 end
 
 figure, plot(usquare,area,'.');
-xlabel('u^2');
+xlabel('drag force');
 ylabel('impulse');
 
 

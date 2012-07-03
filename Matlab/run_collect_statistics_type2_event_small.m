@@ -30,7 +30,7 @@ box on; grid on; axis equal
 
 
 figure, 
-scatter(data(:,3),data(:,2),'b.');
+scatter(data(:,1),data(:,2),'b.');
 xlabel(sprintf('small quantity %s',quantity3));
 ylabel(sprintf('small quantity %s',quantity2));
 set(gca,'xtick',0); set(gca,'ytick',0);

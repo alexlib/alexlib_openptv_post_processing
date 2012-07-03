@@ -25,7 +25,9 @@ A= pi * r^2 ;% the projected grain area perpendicular to flow direction
 density_l = 0.998 ; % density of water ,temperature= 22 [gr/cm^3]
 density_s = 1.065 ; %density of solid patricles [gr/cm^3]
 
-CD = 2; % drag coefficient
+ws = density_s * pi * 4 / 3 * r^3 ;%submerged particle weight
+CD = 0.45; % drag coefficient
+fv = (1+0.5*(density_l/density_s - density_l));
 
 %u_critical = 0.0655;
 %f_drag_critical= 0.5* density_l*1000 * CD * A * (u_critical)^2;
