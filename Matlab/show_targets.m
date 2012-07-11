@@ -18,7 +18,9 @@ function show_targets(fname,varargin)
 % Copyright (c) 2010, Alex dot Liberzon at gmail dot com
 
 %
-if ~findstr(fname,'_targets')
+figure
+
+if isempty(findstr(fname,'_targets'))
     data = textread([fname,'_targets']);
     
     if nargin > 1
@@ -43,6 +45,7 @@ else
         scatter(data(2:end,2),data(2:end,3),'r+');
     end
 end
+drawnow
 
 
 
