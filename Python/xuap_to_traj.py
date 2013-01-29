@@ -55,12 +55,12 @@ class Traj:
 	
 
 def read_xuap_files(directory,first=None,last=None):
-# """ 
-# read_xuap_files(directory='.',first=None,last=None) 
-# reads xuap.* files from the directory, xuap.first to xuap.last
-# Example:
-#	data = _read_xuap_files('~/Desktop/GUI/pyptv2/test_for_v1_02/res',10000,100010)
-# """
+	""" 
+	read_xuap_files(directory='.',first=None,last=None) 
+	reads xuap.* files from the directory, xuap.first to xuap.last
+	Example:
+	#	data = _read_xuap_files('~/Desktop/GUI/pyptv2/test_for_v1_02/res',10000,100010)
+	"""
 	d = glob.glob(os.path.join(directory,'xuap.*'))
 	dlist = [int(os.path.splitext(name)[1][1:]) for name in d]
 	if first is None or first < dlist[0]:
@@ -165,8 +165,9 @@ def frame_to_traj(data,minlength=6):
 
 if __name__ == "__main__":
 	directory ='/Users/alex/Documents/Papers/Lid-Driven-Cavity/3dPTV_compression/Mark3DPTVSingleParticle/res'
-	first =  104174 # 104235 #  #
-	last =  146690 # 144335 # 
+	directory = '/Volumes/alex/openptv_experiment/res'
+	first =  10001 # 104235 #  #
+	last =  11999 # 144335 # 
 	data = read_xuap_files(directory,first,last)
 	newdata = build_trajectories_from_xuap(data)
 	traj = frame_to_traj(newdata)
