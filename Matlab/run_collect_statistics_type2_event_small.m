@@ -2,9 +2,9 @@
 clc, clear
 
 if ismac
-    matdirectory = '/Users/alex/Dropbox/resuspension/2011/trajectories(186-194)';
+    matdirectory = '/Users/alex/Dropbox/resuspension/2011/trajectories_2012(186-194)';
 else
-    matdirectory ='C:\Users\hadar\Dropbox\resuspension\2011\trajectories(186-194)';
+    matdirectory ='C:\Users\hadar\Dropbox\resuspension\2011\trajectories_2012(186-194)';
 end
 large_ones = dir(fullfile(matdirectory,'large*'));
 
@@ -12,6 +12,7 @@ quantity1 = 'uf';
 quantity2 = 'vf';
 quantity3= 'wf';
 R = 25; %mm
+Ws =  12; % settlling velocity [mm/s]
 
 data = [];
 
@@ -22,32 +23,32 @@ for i = 1:length(large_ones)
 end
 
 figure, 
-scatter(data(:,1),data(:,2),'b.');
+scatter(data(:,1)./Ws,data(:,2)./Ws,'b.');
 xlabel(sprintf('small quantity %s',quantity1));
 ylabel(sprintf('small quantity %s',quantity2));
 set(gca,'xtick',0); set(gca,'ytick',0);
 box on; grid on; axis equal
 
 
-figure, 
-scatter(data(:,1),data(:,2),'b.');
-xlabel(sprintf('small quantity %s',quantity3));
-ylabel(sprintf('small quantity %s',quantity2));
-set(gca,'xtick',0); set(gca,'ytick',0);
-box on; grid on; axis equal
+%figure, 
+%scatter(data(:,3)./Ws,data(:,2)./Ws,'b.');
+%label(sprintf('small quantity %s',quantity3));
+%ylabel(sprintf('small quantity %s',quantity2));
+%set(gca,'xtick',0); set(gca,'ytick',0);
+%box on; grid on; axis equal
 
 
-hf1=figure;
-subplot(311), hold on
-nhist(data(:,1),41),hold on
-title(sprintf('small quantity: %s',quantity1))
+%hf1=figure;
+%subplot(311), hold on
+%nhist(data(:,1),41),hold on
+%title(sprintf('small quantity: %s',quantity1))
 
-hold on
-subplot(312),
-nhist(data(:,2),41)
-title(sprintf('small quantity: %s',quantity2))
+%hold on
+%subplot(312),
+%nhist(data(:,2),41)
+%title(sprintf('small quantity: %s',quantity2))
 
-hold on
-subplot(313),
-nhist(data(:,3),41)
-title(sprintf('small quantity: %s',quantity3))
+%hold on
+%subplot(313),
+%nhist(data(:,3),41)
+%title(sprintf('small quantity: %s',quantity3))

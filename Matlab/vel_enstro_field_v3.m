@@ -1,18 +1,10 @@
 %function res=vel_enstro_field_v2(first,last,minx,maxx,miny,maxy,minz,maxz,dl,data_rsl_p7mm)
-
  clear all
+ close all
  clc
- first=1;
- last=10000;%10918;
- minx=0.01;%-0.005;
- maxx=0.055;%0.025;
- miny=0;%-0.010;
- maxy=0.055;%0.025;
- minz=0;%0.005;
- maxz=0.020;%0.020;
- dl=0.5/1000;
- savee=0;
+first=1;last=21405;minx=-0.003;maxx=0.022;miny=0.00;maxy=0.045;minz=0.0;maxz=0.012;dl=0.0007;data_rsl_p7mm=1;
 
+ 
 
 
 cond_c=zeros(length(minx:dl:maxx),length(miny:dl:maxy),length(minz:dl:maxz));
@@ -21,11 +13,11 @@ cond_v=zeros(length(minx:dl:maxx),length(miny:dl:maxy),length(minz:dl:maxz));
 cond_w=zeros(length(minx:dl:maxx),length(miny:dl:maxy),length(minz:dl:maxz));
 
 
-%if savee ==0
+
     for ii=first:1:last
         ii
-        %f=load(['E:\WF_turbulent\exp5\res\xuap.',num2Str(ii)]);
-        f=load(['E:\mean_flow_analysis_in_turbulent_box\rpm_1000\res\xuap.',num2Str(ii)]);
+        
+        f=load(['D:\PTV\Working_folder\WF_1\res_full\xuap.',num2Str(ii)]);
         s=size(f);
         if s(1,1)>0
             x=f(:,6);
@@ -37,7 +29,7 @@ cond_w=zeros(length(minx:dl:maxx),length(miny:dl:maxy),length(minz:dl:maxz));
             q=f(:,15);
             vel=(u.^2+v.^2+w.^2).^0.5;
 
-            ind=find(q>0 & x>minx & x<maxx  &  y>miny & y<maxy  & z> minz & z<maxz & vel<1);
+            ind=find(x>minx & x<maxx  &  y>miny & y<maxy  & z> minz & z<maxz & vel<0.25);%q>0
 
             x=x(ind);
             y=y(ind);
@@ -65,12 +57,7 @@ cond_w=zeros(length(minx:dl:maxx),length(miny:dl:maxy),length(minz:dl:maxz));
 
         end
     end
-    %save data_rsl_p5mm_exp5 cond_c cond_u cond_v cond_w
-    %save rsl_2mm_rpm1000 cond_c cond_u cond_v cond_w 
-%else
-    %load data_rsl_p1mm_exp5;
-    %load rsl_2mm_rpm1000
-%end
+    
 
 %%----------------------Averaging stuff-------------------%%%5
 i_c=0;
@@ -92,25 +79,25 @@ for i=minx:dl:maxx
                 cond_w(i_c,j_c,k_c)=0;
             end
 
-            % Boundary condition %
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             if j<0.0245 % chamber
-%                 if k< 0.000 | k>0.012 | i<-0.003 | i>0.022
-% 
-%                     cond_u(i_c,j_c,k_c)=0;
-%                     cond_v(i_c,j_c,k_c)=0;
-%                     cond_w(i_c,j_c,k_c)=0;
-%                  end
-% 
-%             else % channel
-% 
-%                 if k<0.009 | k>0.012  | i<0.0075 | i>0.0105
-%                     cond_u(i_c,j_c,k_c)=0;
-%                     cond_v(i_c,j_c,k_c)=0;
-%                     cond_w(i_c,j_c,k_c)=0;
-% 
-%                 end
-%             end
+            %Boundary condition 
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            if j<0.0245 % chamber
+                if k< 0.000 | k>0.012 | i<-0.003 | i>0.022
+
+                    cond_u(i_c,j_c,k_c)=0;
+                    cond_v(i_c,j_c,k_c)=0;
+                    cond_w(i_c,j_c,k_c)=0;
+                 end
+
+            else % channel
+
+                if k<0.009 | k>0.012  | i<0.0075 | i>0.0105
+                    cond_u(i_c,j_c,k_c)=0;
+                    cond_v(i_c,j_c,k_c)=0;
+                    cond_w(i_c,j_c,k_c)=0;
+
+                end
+            end
         end
     end
 end
@@ -137,11 +124,11 @@ for i=minx:dl:maxx
     end
 end
 
-%save velocity_component_tb_p5mm_exp5.mat  m_c m_x m_y m_z m_u m_v m_w m_vel
-if savee==0;
-save rpm1000_gridp5mm.mat  cond_c cond_u cond_v cond_w m_c m_x m_y m_z m_u m_v m_w m_vel
+
+if data_rsl_p7mm==0;
+save orifice_grid7mm.mat  cond_c cond_u cond_v cond_w m_c m_x m_y m_z m_u m_v m_w m_vel
 else
-    load rpm1000_gridp5mm
+    load orifice_grid7mm
 end
 
 
@@ -384,9 +371,9 @@ end
 
 
    %quiver3(m_x(1:5:end,1:5:end,1:5:end),m_y(1:5:end,1:5:end,1:5:end),m_z(1:5:end,1:5:end,1:5:end),m_u(1:5:end,1:5:end,1:5:end),m_v(1:5:end,1:5:end,1:5:end),m_w(1:5:end,1:5:end,1:5:end),2);
-      quiverc3D(m_x(1:2:end,1:2:end,1:2:end),m_y(1:2:end,1:2:end,1:2:end),m_z(1:2:end,1:2:end,1:2:end),m_u(1:2:end,1:2:end,1:2:end),m_v(1:2:end,1:2:end,1:2:end),m_w(1:2:end,1:2:end,1:2:end),5);  
-
-      axis equal
+%       %quiverc3D(m_x(1:2:end,1:2:end,1:2:end),m_y(1:2:end,1:2:end,1:2:end),m_z(1:2:end,1:2:end,1:2:end),m_u(1:2:end,1:2:end,1:2:end),m_v(1:2:end,1:2:end,1:2:end),m_w(1:2:end,1:2:end,1:2:end),5);  
+% 
+%       axis equal
 %   %quiver3(m_x(10:2:end,1:end,1:end),m_y(10:2:end,1:end,1:end),m_z(10:2:end,1:end,1:end),m_u(10:2:end,1:end,1:end),m_v(10:2:end,1:end,1:end),m_w(10:2:end,1:end,1:end),5);
 %   %draw_channel(1)
 %   %geometry(1)

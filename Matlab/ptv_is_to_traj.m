@@ -1,16 +1,20 @@
-function [varargout] = ptv_is_to_traj(directory,first,last)
-% directory = 'C:\Documents and Settings\user\My Documents\People\ETH\Beat\colloidbreakage\Colloid\Colloid\ptv_is';
-% directory = 'c:\PTV\Experiments\res_128_Re1435ptvis\'
-% directory = 'c:\PTV\Experiments\res_scene126_Re_890\'
-% directory = 'c:\PTV\Experiments\res_scene130_Re1920\';
-% directory = '/Users/alex/Desktop/res25'; % resuspension project, Aug 2, 2010
+function [varargout] = ptv_is_to_traj(directory,first,last,minlength,dt)
+
+
+if nargin < 5
+    dt = 1; % default dt is not known
+end
+if nargin < 4
+    minlength = 5; % shortest trajectory is 5 frames
+end
 
 disp('Reading ...')
-if nargin < 3
+if nargin == 1
     data = read_ptv_is_files(directory);
 else
     data = read_ptv_is_files(directory,first,last);
 end
+
 disp('Done .')
 save tmp data
 disp('Building trajectories')
@@ -18,7 +22,9 @@ newdata = building_trajectories(data);
 save tmp newdata
 disp('Done')
 disp('PTV to Traj')
-[traj,trajLen] = ptv2traj_v2(newdata,20,1);
+
+    
+[traj,trajLen] = ptv2traj_v2(newdata,minlength,dt);
 save tmp traj
 disp('Done')
 traj = ensure_order_traj(traj);

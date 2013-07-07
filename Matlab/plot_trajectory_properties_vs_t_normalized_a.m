@@ -1,4 +1,4 @@
-function plot_trajectory_properties_vs_t(traj,dt,scene_num)
+function plot_trajectory_properties_vs_t_normalized(traj,dt,scene_num)
 % if nargin < 2
 %     smooth = 0;
 % end

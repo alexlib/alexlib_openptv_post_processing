@@ -18,8 +18,6 @@ function show_targets(fname,varargin)
 % Copyright (c) 2010, Alex dot Liberzon at gmail dot com
 
 %
-figure
-
 if isempty(findstr(fname,'_targets'))
     data = textread([fname,'_targets']);
     
@@ -45,7 +43,9 @@ else
         scatter(data(2:end,2),data(2:end,3),'r+');
     end
 end
+title(fname)
 drawnow
+
 
 
 

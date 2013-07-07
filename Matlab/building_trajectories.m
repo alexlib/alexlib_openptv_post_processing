@@ -19,7 +19,7 @@ if isfield(xuap,'xf')
 
 
     for i = 2:length(xuap) % all the following XUAP files
-        if xuap(i).t - xuap(i-1).t ~= 1 || id == 0
+        if xuap(i).t(1) - xuap(i-1).t(1) > 1 || id == 0
             for j = 1:length(xuap(i).prev) % all points in the FIRST xuap file
                 if xuap(i).next(j) ~= -1 && xuap(i).xf(j) ~= 0
                     id = id + 1; % add new trajectory ID
@@ -39,30 +39,27 @@ if isfield(xuap,'xf')
             end
         end
     end
-else % ADDED FILES 
+elseif isfield(xuap,'xr') % PTV_IS or ADDED FILES 
 
     id = 0;
-    xuap(1).trajid = -999;
+    xuap(1).trajid = -999*ones(length(xuap(1).xr),1);
 
     for j = 1:length(xuap(1).prev) % all points in the FIRST xuap file
         %    if xuap(1).prev(j) == 0 % check
         if xuap(1).next(j) ~= -2 && xuap(1).xr(j) ~= 0
             id = id + 1; % add new trajectory ID
             xuap(1).trajid(j) = id; % assign to the line
-        else
-            xuap(1).trajid(j) = -999;
         end
     end
 
 
     for i = 2:length(xuap) % all the following XUAP files
-        if xuap(i).t - xuap(i-1).t ~= 1 || id == 0  % IF THERE WAS A JUMP IN TIME
+        xuap(i).trajid = -999*ones(length(xuap(i).xr),1);
+        if xuap(i).t(1) - xuap(i-1).t(1) ~= 1 || id == 0  % IF THERE WAS A JUMP IN TIME
             for j = 1:length(xuap(i).prev) % all points in the FIRST xuap file
                 if xuap(i).next(j) ~= -2 && xuap(i).xr(j) ~= 0
                     id = id + 1; % add new trajectory ID
                     xuap(i).trajid(j) = id; % assign to the line
-                else
-                    xuap(i).trajid(j) = -999;
                 end
             end
         else

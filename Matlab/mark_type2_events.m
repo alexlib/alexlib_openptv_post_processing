@@ -18,9 +18,9 @@
 
 
 if ismac
-    matdirectory = '/Users/alex/Dropbox/resuspension/2011/trajectories(186-194)';
+    matdirectory = '/Users/alex/Dropbox/resuspension/Matlab/trajectories_2012(186-194)';
 else
-    matdirectory ='C:\Users\hadar\Dropbox\resuspension\2011\trajectories(186-194)';
+    matdirectory ='C:\Users\hadar\Dropbox\resuspension\Matlab\trajectories_2012(186-194)';
 end
 large_ones = dir(fullfile(matdirectory,'large*'));
 

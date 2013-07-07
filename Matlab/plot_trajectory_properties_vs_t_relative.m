@@ -1,4 +1,4 @@
-function plot_trajectory_properties_vs_t(traj,dt)
+function plot_trajectory_properties_vs_t_relative(traj,dt)
 % if nargin < 2
 %     smooth = 0;
 % end
@@ -67,7 +67,7 @@ end
 hold off
 xlabel('[sec]');
 ylabel('[cm/s]');
-legend([l1,l2],{'ux','u_y'});
+legend([l1,l2],{'u_x','u_y'});
 
 %
 subplot(313)

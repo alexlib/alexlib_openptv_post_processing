@@ -9,7 +9,7 @@ large_ones = dir(fullfile(matdirectory,'large*'));
 
 quantity1 = 'vf';
 quantity2 = 'vf';
-R = 40; %mm
+R = 25; %mm
 
 data = [];
 

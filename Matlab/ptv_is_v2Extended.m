@@ -45,8 +45,8 @@ write_rt=0;
     
                   
              
-             f1=fullfile(direc,'ptv_is_Extended');
-             id=direc(17:29);
+             f1=fullfile(direc,'Extended_ptv_is');
+             id=kkkk(tt).name;
              f1=[f1 '_' id];
               if (exist(f1) == 0)
                   mkdir (f1);

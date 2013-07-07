@@ -1,4 +1,4 @@
-function [traj,removelist] = haitao_linking_criteria(traj,maxDt,distThresh)
+function [traj,removelist] = haitao_linking_criteria_v3(traj,maxDt,distThresh)
 % HAITAO_LINKNG_CRITERIA builds containers of trajectories that can be
 % linked together. Simple criteria of distance between the end of the
 % previous trajectory and the beginning of the next trajectory is used.

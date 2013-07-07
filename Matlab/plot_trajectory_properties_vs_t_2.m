@@ -1,4 +1,4 @@
-function plot_trajectory_properties_vs_t(traj,dt)
+function plot_trajectory_properties_vs_t_2(traj,dt)
 col=['r';'b';'k';'g';'m';'c'];
     
 % if nargin < 2

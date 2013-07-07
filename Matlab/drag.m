@@ -21,21 +21,20 @@ R = 25;
 D = 550 * 10^(-6); %diameter of the solid particle [m]
 r = D/2;
 A= pi * r^2 ;% the projected grain area perpendicular to flow direction
+V = 4/3 * pi * r^3; %[m^3]
 
 density_l = 0.998 ; % density of water ,temperature= 22 [gr/cm^3]
 density_s = 1.065 ; %density of solid patricles [gr/cm^3]
 
-ws = density_s * pi * 4 / 3 * r^3 ;%submerged particle weight
-CD = 0.45; % drag coefficient
-fv = (1+0.5*(density_l/density_s - density_l));
+CD = 2; % drag coefficient
 
 %u_critical = 0.0655;
 %f_drag_critical= 0.5* density_l*1000 * CD * A * (u_critical)^2;
 
 % according to the article: impulse an particle dislodgement undr turbulent flow conditions
-ws = (density_s -density_l)* 1000 * pi  * 9.81 *4 / 3 * r^3 ;%submerged particle weight 
+ws = (density_s -density_l)* 1000  * 9.81 *V ;%submerged particle weight 
 fv = (1+0.5*(density_l/(density_s-density_l))); % 
-f_drag_critical =  fv * ws  ; 
+f_drag_critical =  fv * ws;  
 %u_square_critical = 2*fv*ws/(density_l* CD *A);
 
 %according to shields parameter. article: grid stirred turbulence/Medina,Redondo
@@ -110,10 +109,11 @@ for kFiles = 1:length(large_ones)
                     tmp.uf = tmp.uf(relevant);
                     tmp.vf = tmp.vf(relevant);
                     tmp.wf = tmp.wf(relevant);
+                    if tmp.yf <= -21.5 ,continue, end
                     %tmp_velocity = [tmp.uf, tmp.vf, tmp.wf];
                     
                     velocity_p_f = [tmp.uf-up,tmp.vf-vp,tmp.wf-wp];
-                    %velocity_p_f = [up-tmp.uf,vp-tmp.vf,wp-tmp.wf];
+                    %velocity_p_f = [up-tmp.uf,0,wp-tmp.wf];
                     drag_force = drag_force + 0.5* density_l*1000* CD * A * norm(velocity_p_f) * velocity_p_f;% sum of all the relevant small particles
                     
                     counter = counter + 1;
@@ -126,7 +126,7 @@ for kFiles = 1:length(large_ones)
             %data_small{kFiles,iEvents,ind} =  tmp_velocity;
             data_drag{kFiles,iEvents,ind} =  norm (drag_force) / counter; % average  of the   absolute drag force
             time_data_small{kFiles, iEvents,ind} = data.t(ind);
-            
+           
           
             
         end
@@ -153,3 +153,57 @@ xlim = get(gca,'xlim');
 plot(xlim,[f_drag_critical,f_drag_critical], 'r'); % make a line
 %plot(xlim,[f_drag_critical_1,f_drag_critical_1], 'g'); % make a line
 hold off
+
+
+hl = sort(findobj(1,'type','line','Color',[0 0 1])); % all the blue lines
+ho = sort(findobj(gcf,'type','line','Color',[1 0 0])); % all the red dots and the red line
+
+% find out the red line
+for i = 1:length(ho)
+    yd = get(ho(i),'YData');
+    if length(yd) > 1
+        thresh = yd(1);
+        lineInd = i;
+    end
+end
+
+ho(lineInd) = [];
+
+
+%
+%
+% if there is no line, then comment out the above portion
+% manually set up the threshold
+%thresh = 0.4e-6;
+
+[usquare,area] = deal(zeros(size(hl)));
+
+for i = 1:length(hl) % 1 is the red line 
+    
+% select the data of the line 
+xd = get(hl(i),'xdata'); yd = get(hl(i),'ydata');
+
+% select the circle that belongs to that line:
+xde = get(ho(i),'xdata'); yde = get(ho(i),'ydata');
+
+% let's store the events:
+usquare(i) = yde;
+
+ind = yd > thresh & xd <= xde;
+yd = yd - thresh;
+area(i) = trapz(xd,yd)/160;
+set(hl(i),'DisplayName',sprintf('%6.4f',area(i)));
+end
+
+figure, hold on,
+for kFiles = 1:size(data_drag,1)
+    for iEvents = 1:size(data_drag,2)
+        if ~isempty([time_of_event{kFiles,iEvents}])
+            plot([time_data_small{kFiles,iEvents,:}]-[time_data_small{kFiles,iEvents,1}],[area{kFiles,iEvents,:}]); 
+            tmp = [area{kFiles,iEvents,:}];
+            t1 = max([time_of_event{kFiles,iEvents}]-[time_data_small{kFiles,iEvents,1}]-1,1);
+            plot(t1,tmp(t1+1),'ro','MarkerSize',10); % time of the event
+           
+        end
+    end
+end

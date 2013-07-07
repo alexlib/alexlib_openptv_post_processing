@@ -1,8 +1,9 @@
+clc, clear
 
 if ismac
     matdirectory = '/Users/alex/Dropbox/resuspension/2011/trajectories(186-194)';
 else
-    matdirectory ='C:\Users\hadar\Dropbox\resuspension\2011\trajectories(186-194)';
+    matdirectory ='C:\Users\hadar\Dropbox\resuspension\Matlab\trajectories_2012(186-194)\events_80';
 end
 large_ones = dir(fullfile(matdirectory,'large*'));
 
@@ -24,4 +25,4 @@ end
 %box on; grid on; 
 
 figure
-plot(data(:,1),data(:,2),'r.')
+plot(data(:,1)./295,data(:,2)./295,'r.')

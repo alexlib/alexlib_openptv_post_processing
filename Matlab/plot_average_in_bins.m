@@ -25,12 +25,12 @@ average_in_bins = zeros(size(n)); % size n -  number of bins
 
 for i = 1:length(n)-1, 
     ind = which_bin == i; 
-%average_in_bins(i) = mean(a(ind,2)); 
-%average_in_bins(i) = mean(a(ind,3)); 
-average_in_bins(i) = mean(a(ind,4)); 
+% average_in_bins(i) = mean(a(ind,2)); 
+average_in_bins(i) = mean(a(ind,3)); 
+%average_in_bins(i) = mean(a(ind,4)); 
 end
 
 bin_centers = edges(1:end-1) + diff(edges)/2;
 
-figure
-plot(bin_centers,average_in_bins(1:end-1),'o')
+% figure
+% plot(bin_centers,average_in_bins(1:end-1),'o')
