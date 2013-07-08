@@ -184,16 +184,24 @@ def frames_to_traj(data,lastid=None):
     trajectories of particles, using unique identities
     """
     if lastid == None:
-        lastid = data[-1][-1].id
+        id = []
+        for f in data:
+            for p in f:
+                id.append(p.id)
         
-    print lastid 
-        
+        lastid = max(id)
+                
     # prepare the dataset
-    traj = [Trajectory() for i in range(lastid+1)]
-    
+    traj = [Trajectory() for i in range(lastid+1)]    
     for frame in data:
         for particle in frame:
-            traj[particle.id].append(particle)
+            try:
+                traj[particle.id].append(particle)
+            except:
+                print len(traj)
+                print particle
+                print particle.id
+                
                 
     for t in traj:
         if len(t) < 3:
@@ -256,124 +264,36 @@ def plot_all_trajectories(list_of_traj):
 if __name__ == '__main__':
      directory = '/Users/alex/Desktop/crowd_tracking/res/'
      # data = read_ptv_data_from_directory(directory,38940,38999)
-     data = read_ptv_data_from_directory(directory,38940,49100)
+     data = read_ptv_data_from_directory(directory,38940,56656)
      link_trajectories(data)
+     tmp = len(data)
      clean_data(data)
-     clean_data(data) # check why it's recursive?
-     list_of_traj = frames_to_traj(data)
-     calculate_velocity(list_of_traj)
-     plot_all_trajectories(list_of_traj)
-     np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),data,list_of_traj)
+     while len(data) != tmp:
+        clean_data(data)
+        tmp = len(data)
      
+     traj = frames_to_traj(data)
+     calculate_velocity(traj)
+     plot_all_trajectories(traj)
+     np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),\
+     data=data,traj=traj)
+     
+     # example of the histogram of velocity
+     vel = []
+     t = []
+     for f in data:
+         for p in f:
+             vel.append(p.u**2 + p.v**2)
+             t.append(p.t)
+        
+     plot(t,vel)
+     xlabel('t')
+     ylabel('velocity')
+     
+     figure()
+     hist(vel,100)
+     xlabel('velocity')
+     ylabel('histogram')
+    
                          
-                             
-
-#------------------------------
-#def _build_trajectories(data):
-#	"""
-#	build_trajectories(data) is responsible for the book keeping of the trajectories, 
-#	using the prev,next fields in the frames,creating new set of data, in the form of trajectories
-#	"""
-#	# first frame, initialization
-#	trajid = 0 # running trajid counter
-#	ind, = (data[0].next != -2).nonzero()
-#	if len(ind) > 0:
-#		data[0].trajid[ind] = range(trajid,trajid+len(ind))
-#		trajid += len(ind)
-#		print "data[0].trajid", data[0].trajid
-#	for i,frame in enumerate(data[1:]): # from second frame and on: keep tracking the id
-#		old, = (frame.prev > -1).nonzero() # those that continue from the previous frame
-#		frame.trajid[old] = data[i].trajid[frame.prev[old]-1] # notice i runs from zero
-#		print "frame.trajid", frame.trajid
-#		# new trajectories - no previous, but there is next
-#		ind, = np.logical_and(frame.prev == -1, frame.next != -2).nonzero()
-#		if len(ind) > 0:
-#			frame.trajid[ind] = range(trajid,trajid+len(ind))
-#			trajid += len(ind)
-#			print "frame.trajid next", frame.trajid
-#		frame.t = frame.t*np.ones_like(frame.x)
-#		
-#	return(data)
-#----------------------------
-#def _ptv_to_traj(data,minlength=5):
-#	""" 
-#	ptv_to_traj(data) converts the data in frames with already prepared trajid to the data in form of
-#	trajectories
-#	"""
-#	
-#	trajid = np.hstack([f.trajid for f in data])
-#	x = np.hstack([f.x for f in data])
-#	y = np.hstack([f.y for f in data])
-#	z = np.hstack([f.z for f in data])
-#	t = np.hstack([f.t for f in data])
-#
-#	traj = []
-#	ind, = ((x != 0) & ( y != 0) & (z != 0)).nonzero()
-#
-#	x = x[ind]
-#	y = y[ind]
-#	z = z[ind]
-#	t = t[ind]
-#	trajid = trajid[ind]
-#	dt = np.diff(np.unique(t)).min()
-#	unique_trajid = np.unique(trajid)
-#	print unique_trajid
-#
-#	counter = -1
-#	trajlen = []
-#	for tr in unique_trajid:
-#		id = trajid == tr
-#		if sum(id) > minlength:
-#			counter += 1
-#			# import pdb; pdb.set_trace()
-#			trajlen.append(sum(id))
-#			u = np.gradient(x[id])
-#			v = np.gradient(y[id])
-#			w = np.gradient(z[id])
-#			ax = np.gradient(u)
-#			ay = np.gradient(v)
-#			az = np.gradient(w)
-#			tmp = np.rec.fromarrays([x[id],y[id],z[id],u,v,w,ax,ay,az,t[id]],names='x,y,z,u,v,w,ax,ay,az,t')
-#			tmp.trajid = tr
-#			traj.append(tmp)
-#
-#	return traj
-
-## -------------------------
-#if __name__ == '__main__':
-#	print(' Reading ... \n')
-#	# directory = '/Volumes/alex/openptv_experiment/res';
-#	directory = '/Users/alex/Desktop/crowd_tracking/res/'
-#	data = _read_ptv_is_files(directory,38940,38999) #('/Users/alex/Desktop/GUI/pyptv2/test_for_v1_02/res/')
-#	np.save('data',data)
-#	print(' Building trajectories ... \n')
-#	data = _build_trajectories(data)
-#	np.save('data',data)
-#	print('Restructuring and deriving velocity ... \n')
-#	traj = _ptv_to_traj(data)
-#	print(' Saving ... \n')
-#	np.save('traj',traj)
-# 	
-# 	% If manual cleaning is needed
-# 	traj = graphical_cleaning_traj(traj,'xy')
-# 	
-# 	plot_long_trajectories(traj,10)
-# 	
-# 	% save(fullfile(directory,'traj.mat'),'traj')
-# 	% load(fullfile(directory,'traj.mat'),'traj')
-# 	
-# 	s = 100;
-# 	for i = 1:length(traj)
-# 		newtraj(i) = link_trajectories_smoothn(traj(i),s);
-# 	end
-# 	
-# 	% for i = 1:length(traj)
-# 	%     newtraj(i) = link_trajectories_rbf(traj(i),0.1);
-# 	% end
-# 	[traj,removelist] = haitao_linking_criteria(newtraj,10,1.5);
-# 	% save colloid_traj traj
-# 	
-# 	
-# 	plot_long_trajectories(traj,5)
-# 	hold on
-# 	plot_long_trajectories(newtraj(removelist),1,1)
+      

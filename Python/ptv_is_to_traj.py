@@ -43,9 +43,11 @@ def _read_ptv_is_files(directory,first=None,last=None):
 	
 	for ind,file in enumerate(d):
 		print file
-		frame = np.genfromtxt(file,dtype="i4,i4,f8,f8,f8",names=['prev','next','x','y','z'],skip_header=1).view(np.recarray)
+		frame = np.atleast_1d(np.genfromtxt(file,dtype="i4,i4,f8,f8,f8",
+		names=['prev','next','x','y','z'],skip_header=1)).view(np.recarray)
+		# print (ind, file, frame)
 		frame.t = dlist[ind]*np.ones_like(frame.x)
-		frame.trajid = np.zeros_like(frame.x,dtype='i4')
+		frame.trajid = np.atleast_1d(np.zeros_like(frame.x,dtype='i4'))
 		data.append(frame)
 	
 	return data
@@ -75,7 +77,7 @@ def _build_trajectories(data):
 		
 	return(data)
 #----------------------------
-def _ptv_to_traj(data,minlength=6):
+def _ptv_to_traj(data,minlength=0):
 	""" 
 	ptv_to_traj(data) converts the data in frames with already prepared trajid to the data in form of
 	trajectories
@@ -85,29 +87,23 @@ def _ptv_to_traj(data,minlength=6):
 	k = 3 # spline order
 	nest = -1 # estimate of number of knots needed (-1 = maximal)
 	
-	trajid = data[0].trajid
-	x = data[0].x
-	y = data[0].y
-	z = data[0].z
-	t = data[0].t
-
-	for frame in data[1:]:
-		# print frame
-		trajid = np.append(trajid,frame.trajid)
-		x = np.append(x,frame.x)
-		y = np.append(y,frame.y)
-		z = np.append(z,frame.z)
-		t = np.append(t,frame.t)
-
 	
+	
+	trajid = np.hstack([f.trajid for f in data])
+	x = np.hstack([f.x for f in data])
+	y = np.hstack([f.y for f in data])
+	z = np.hstack([f.z for f in data])
+	t = np.hstack([f.t for f in data])
+
 	traj = []
-	ind, = ((x != 0) & ( y != 0) & (trajid != 0)).nonzero()
-	print ind
+	ind, = ((x != 0) & ( y != 0) & (z != 0)).nonzero()
+
 	x = x[ind]
 	y = y[ind]
 	z = z[ind]
 	t = t[ind]
 	trajid = trajid[ind]
+	import pdb; pdb.set_trace()
 	dt = np.diff(np.unique(t)).min()
 	unique_trajid = np.unique(trajid)
 	print unique_trajid
@@ -141,8 +137,8 @@ def _ptv_to_traj(data,minlength=6):
 if __name__ == '__main__':
 	print(' Reading ... \n')
 	# directory = '/Volumes/alex/openptv_experiment/res';
-	directory = '/Users/alex/Dropbox/dottorato_Corbetta_Crowd_Vision/openptv_experiment/res/'
-	data = _read_ptv_is_files(directory,10001,11999) #('/Users/alex/Desktop/GUI/pyptv2/test_for_v1_02/res/')
+	directory = '/Users/alex/Desktop/crowd_tracking/res/'
+	data = _read_ptv_is_files(directory,38940,41950) #('/Users/alex/Desktop/GUI/pyptv2/test_for_v1_02/res/')
 	np.save('data',data)
 	print(' Building trajectories ... \n')
 	data = _build_trajectories(data)
