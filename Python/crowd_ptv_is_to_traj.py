@@ -13,8 +13,8 @@ class Particle(object):
     the attributes are position (x,y,z) and velocities (u,v,w), time instance (t)
     and trajectory identity (id)
     """
-    def __init__(self,p=0,n=0, x=0,y=0,z=0,t=0,id=None,\
-    u=0,v=0,w=0):
+    def __init__(self,p=0,n=0, x=0.0,y=0.0,z=0.0,t=0,id=None,\
+    u=0.0,v=0.0,w=0.0,ax=0.0,ay=0.0,az=0.0):
         self.p = p
         self.n = n
         self.x = x
@@ -25,6 +25,9 @@ class Particle(object):
         self.u = u
         self.v = v
         self.w = w
+        self.ax = ax
+        self.ay = ay
+        self.az = az
         
     def __str__(self):
         return '%.2f %.2f %.2f %.2f %.2f %.2f %d %d' % (self.x,self.y,self.z,\
@@ -237,6 +240,31 @@ def calculate_velocity(traj,fps):
     
     return traj
     
+def calculate_acceleration(traj,fps):
+    """ estimates acceleration of the person along the trajectory using simple
+    forward and backward difference scheme
+    Inputs:
+        traj = Trajectory(), a list of Particle() objects linked in time
+        fps = frame-per-second rate of recording, converts the frames to seconds
+    Output: traj.{ax,ay,az} in meters/second**2    
+    TODO: to be improved using smooth splines and higher order differentation 
+    schemes
+    """
+    for t in traj: # for each trajectory
+        # last particle use backward difference
+        t[-1].ax = (t[-1].u - t[-2].u)*fps # m/s
+        t[-1].ay = (t[-1].v - t[-2].v)*fps
+        t[-1].az = (t[-1].w - t[-2].w)*fps
+        #first particle use forward difference
+        t[0].ax = (t[1].u - t[0].u)*fps # m/s
+        t[0].ay = (t[1].v - t[0].v)*fps
+        t[0].az = (t[1].w - t[0].w)*fps        
+        for i,p in enumerate(t[1:-1]): # for other particles
+            p.ax = (t[i+1].u - t[i].u)/2.*fps
+            p.ay = (t[i+1].v - t[i].v)/2.*fps
+            p.az = (t[i+1].w - t[i].w)/2.*fps
+    
+    return traj
 
 def plot_traj(traj,fig=None):
     """ plots single trajectory as dots, curves and arrows
@@ -316,27 +344,122 @@ if __name__ == '__main__':
      traj = frames_to_traj(data)
      
      calculate_velocity(traj,fps)
+     calculate_acceleration(traj,fps)
      # plot_all_trajectories(traj)
      plot_colored_trajectories(traj)
      np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),\
      data=data,traj=traj)
      
      # example of the histogram of velocity
-     vel = []
+     u = []
+     v = []
      t = []
+     x = []
+     y = []
+     id = []
      for f in data:
          for p in f:
-             vel.append(p.u**2 + p.v**2)
+             # vel.append(p.u**2 + p.v**2)
+             x.append(p.x)
+             y.append(p.y)
+             u.append(p.u)
+             v.append(p.v)
              t.append(p.t)
-        
-     plot(t,vel)
-     xlabel('t')
-     ylabel('velocity')
+             id.append(p.id)
      
-     figure()
-     hist(vel,100)
-     xlabel('velocity')
-     ylabel('histogram')
+     x = np.asarray(x)
+     y = np.asarray(y)
+     u = np.asarray(u)
+     v = np.asarray(v)
+     t = np.asarray(t)
+     id = np.asarray(id)
+     t = (t - t[0])/fps  
+     vel = u**2 + v**2 
+              
+     # vel = [i**2 + j**2 for i,j in zip(u,v)]  
+     plt.figure()  
+     plt.plot(t,vel)
+     plt.xlabel('t')
+     plt.ylabel('velocity')
+     
+     plt.figure()
+     plt.hist(vel,100)
+     plt.xlabel('velocity')
+     plt.ylabel('histogram')
+     
+     
+     np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','xyuvtid'),\
+     x=x,y=y,u=u,v=v,t=t,id=id)
+     
+     
+     plt.figure()
+     plt.hist2d(x,u,bins=100,range=[[-1,1.3],[-2,2]])
+     plt.title('speed vs position')
+     plt.xlabel('x [m]')
+     plt.ylabel('u [m/s]')
+     plt.colorbar()
+     
+     plt.figure()
+     plt.hist2d(x,v,bins=100,range=[[-1,1.3],[-2,2]])
+     plt.title('transverse speed vs position')
+     plt.xlabel('x [m]')
+     plt.ylabel('v [m/s]')
+     plt.colorbar()
+     
+     plt.figure()
+     plt.hist2d(u,v,bins=100,range=[[-1,1],[-1,1]])
+     plt.title('transverse speed vs position')
+     plt.xlabel('u [m/s]')
+     plt.ylabel('v [m/s]')
+     plt.colorbar()
+     
+     
+     # compare single person speed vs multi-person speed
+     single_u, single_v, dense_u, dense_v = [],[],[],[]
+     for f in data:
+         if len(f) == 1: # single person frame
+             single_u.append(f[0].u)
+             single_v.append(f[0].v)
+         elif len(f) > 3: # multi person frame
+             for p in f:
+                 dense_u.append(p.u)
+                 dense_v.append(p.v)
+                
+     plt.figure()
+     plt.hist(dense_u,100,color='b',normed=True)
+     plt.hist(single_u,100,color='r',normed=True)
+     plt.title('single vs dense velocity')
+     plt.legend(('dense','single'))
+     
+     plt.figure()
+     plt.hist(dense_v,100,color='b',normed=True)
+     plt.hist(single_v,100,color='r',normed=True)
+     plt.title('single vs dense transverse velocity')
+          
+
+     # compare single person speed vs multi-person speed
+     single_ax, single_ay, dense_ax, dense_ay = [],[],[],[]
+     for f in data:
+         if len(f) == 1: # single person frame
+             single_ax.append(f[0].ax)
+             single_ay.append(f[0].ay)
+         elif len(f) > 3: # multi person frame
+             for p in f:
+                 dense_ax.append(p.ax)
+                 dense_ay.append(p.ay)
+                
+     plt.figure()
+     plt.hist(dense_ax,100,color='b',normed=True)
+     plt.hist(single_ax,100,color='r',normed=True)
+     plt.title('single vs dense acceleration')
+     plt.legend(('dense','single'))
+     
+     plt.figure()
+     plt.hist(dense_ay,100,color='b',normed=True)
+     plt.hist(single_ay,100,color='r',normed=True)
+     plt.title('single vs dense transverse acceleration')
+     plt.legend(('dense','single'))
+     
     
                          
       
