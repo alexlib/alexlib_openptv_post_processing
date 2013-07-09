@@ -97,9 +97,9 @@ def frame_from_file(filename):
             vals = f.readline().split()
             p.p = int(vals[0])
             p.n = int(vals[1])
-            p.x = float(vals[2])
-            p.y = float(vals[3])
-            p.z = float(vals[4])
+            p.x = float(vals[2])/1000. # mm to meter
+            p.y = float(vals[3])/1000. # mm to meter
+            p.z = float(vals[4])/1000. # mm to meter
             p.t = t
             frame.append(p)
     return frame
@@ -211,21 +211,29 @@ def frames_to_traj(data,lastid=None):
             
  
         
-def calculate_velocity(traj):
+def calculate_velocity(traj,fps):
     """ estimates velocity of the particles along the trajectory using simple
     forward and backward difference scheme
+    Inputs:
+        traj = Trajectory(), a list of Particle() objects linked in time
+        fps = frame-per-second rate of recording, converts the frames to seconds
+    Output: traj.{u,v,w} in meters/second    
     TODO: to be improved using smooth splines and higher order differentation 
     schemes
     """
     for t in traj: # for each trajectory
         # last particle use backward difference
-        t[-1].u = t[-1].x - t[-2].x
-        t[-1].v = t[-1].y - t[-2].y
-        t[-1].w = t[-1].z - t[-2].z
-        for i,p in enumerate(t[:-1]): # for other particles
-            p.u = t[i+1].x - p.x
-            p.v = t[i+1].y - p.y
-            p.w = t[i+1].z - p.z
+        t[-1].u = (t[-1].x - t[-2].x)*fps # m/s
+        t[-1].v = (t[-1].y - t[-2].y)*fps
+        t[-1].w = (t[-1].z - t[-2].z)*fps
+        #first particle use forward difference
+        t[0].u = (t[1].x - t[0].x)*fps # m/s
+        t[0].v = (t[1].y - t[0].y)*fps
+        t[0].w = (t[1].z - t[0].z)*fps        
+        for i,p in enumerate(t[1:-1]): # for other particles
+            p.u = (t[i+1].x - t[i].x)/2.*fps
+            p.v = (t[i+1].y - t[i].y)/2.*fps
+            p.w = (t[i+1].z - t[i].z)/2.*fps
     
     return traj
     
@@ -260,9 +268,42 @@ def plot_all_trajectories(list_of_traj):
            plot_traj(traj,fig)
     fig.show()
 
+
+def plot_colored_trajectories(list_of_traj):
+    """ plots all the trajectories in a given list of trajectories on a single
+    figure, overlapping the curves
+    """
+    fig = plt.figure()
+    plt.hold(True)
+    for traj in list_of_traj:
+        x,y,z,u,v,w = [],[],[],[],[],[]
+        for p in traj: # for all particles
+            x.append(p.x)
+            y.append(p.y)
+            z.append(p.z)
+            u.append(p.u)
+            v.append(p.v)
+            w.append(p.w)
+        
+        if np.median(u) > 0:
+            plt.plot(x,y,'bo--')
+            plt.quiver(x,y,u,v,color='b')
+        else:
+            plt.plot(x,y,'rs-.')
+            plt.quiver(x,y,u,v,color='r')   
+    plt.xlabel('x [m]')
+    plt.ylabel('y [m]')
+    plt.title('Direction-colored velocity map')
+    fig.show()
  
+
+
 if __name__ == '__main__':
      directory = '/Users/alex/Desktop/crowd_tracking/res/'
+     # Note that the data is stored in millimeters
+     # time is given in frames
+     fps = 5.0 # frames-per-second
+     
      # data = read_ptv_data_from_directory(directory,38940,38999)
      data = read_ptv_data_from_directory(directory,38940,56656)
      link_trajectories(data)
@@ -273,8 +314,10 @@ if __name__ == '__main__':
         tmp = len(data)
      
      traj = frames_to_traj(data)
-     calculate_velocity(traj)
-     plot_all_trajectories(traj)
+     
+     calculate_velocity(traj,fps)
+     # plot_all_trajectories(traj)
+     plot_colored_trajectories(traj)
      np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),\
      data=data,traj=traj)
      
