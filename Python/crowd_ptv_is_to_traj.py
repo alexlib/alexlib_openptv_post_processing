@@ -314,9 +314,11 @@ def plot_colored_trajectories(list_of_traj):
             w.append(p.w)
         
         if np.median(u) > 0:
+            plt.plot(x[0],y[0],'rs',markersize=10)
             plt.plot(x,y,'bo--')
             plt.quiver(x,y,u,v,color='b')
         else:
+            plt.plot(x[0],y[0],'bo',markersize=10)
             plt.plot(x,y,'rs-.')
             plt.quiver(x,y,u,v,color='r')   
     plt.xlabel('x [m]')
@@ -327,13 +329,13 @@ def plot_colored_trajectories(list_of_traj):
 
 
 if __name__ == '__main__':
-     directory = '/Users/alex/Desktop/crowd_tracking/res/'
+     directory = '/Users/alex/Desktop/crowd_tracking/test_folder/res/'
      # Note that the data is stored in millimeters
      # time is given in frames
      fps = 5.0 # frames-per-second
      
      # data = read_ptv_data_from_directory(directory,38940,38999)
-     data = read_ptv_data_from_directory(directory,38940,56656)
+     data = read_ptv_data_from_directory(directory,45160,45179)
      link_trajectories(data)
      tmp = len(data)
      clean_data(data)
@@ -347,9 +349,9 @@ if __name__ == '__main__':
      calculate_acceleration(traj,fps)
      # plot_all_trajectories(traj)
      plot_colored_trajectories(traj)
-     np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),\
-     data=data,traj=traj)
-     
+     # np.save(os.path.join('/Users/alex/Desktop/crowd_tracking','ptv_is'),\
+     # data=data,traj=traj)
+"""     
      # example of the histogram of velocity
      u = []
      v = []
@@ -388,8 +390,8 @@ if __name__ == '__main__':
      plt.ylabel('histogram')
      
      
-     np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','xyuvtid'),\
-     x=x,y=y,u=u,v=v,t=t,id=id)
+    # np.savez(os.path.join('/Users/alex/Desktop/crowd_tracking','xyuvtid'),\
+    # x=x,y=y,u=u,v=v,t=t,id=id)
      
      
      plt.figure()
@@ -461,5 +463,4 @@ if __name__ == '__main__':
      plt.legend(('dense','single'))
      
     
-                         
-      
+"""

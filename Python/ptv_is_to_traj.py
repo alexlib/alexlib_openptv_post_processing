@@ -8,9 +8,9 @@ translated from Matlab ptv_is_to_traj.m
 import os
 import glob
 import numpy as np
-from numpy.lib.recfunctions import drop_fields,append_fields
+# from numpy.lib.recfunctions import drop_fields,append_fields
 from scipy.interpolate import splprep, splev
-import math as m
+# import math as m
 # import pdb
 
 
@@ -103,7 +103,7 @@ def _ptv_to_traj(data,minlength=0):
 	z = z[ind]
 	t = t[ind]
 	trajid = trajid[ind]
-	import pdb; pdb.set_trace()
+	# import pdb; pdb.set_trace()
 	dt = np.diff(np.unique(t)).min()
 	unique_trajid = np.unique(trajid)
 	print unique_trajid
@@ -137,8 +137,8 @@ def _ptv_to_traj(data,minlength=0):
 if __name__ == '__main__':
 	print(' Reading ... \n')
 	# directory = '/Volumes/alex/openptv_experiment/res';
-	directory = '/Users/alex/Desktop/crowd_tracking/res/'
-	data = _read_ptv_is_files(directory,38940,41950) #('/Users/alex/Desktop/GUI/pyptv2/test_for_v1_02/res/')
+	directory = '/Users/alex/Desktop/crowd_tracking/test_folder/res/'
+	data = _read_ptv_is_files(directory,45160,45179) #('/Users/alex/Desktop/GUI/pyptv2/test_for_v1_02/res/')
 	np.save('data',data)
 	print(' Building trajectories ... \n')
 	data = _build_trajectories(data)
