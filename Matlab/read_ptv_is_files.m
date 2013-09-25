@@ -51,7 +51,9 @@ for k = first:last
     % for i = 1:40000
     i = k - first + 1;
     tmp = textread(fullfile(directory,d(i).name));
-    [~,~,ext,~] = fileparts(fullfile(directory,d(i).name));
+    [~,~,ext] = fileparts(fullfile(directory,d(i).name));
+    %[~,~,ext,~] was changed to [~,~,ext]. otherwise, it gives an error. by
+    %Jimmy
     numRows = tmp(1);
     tmp = tmp(2:end,1:5);
 
