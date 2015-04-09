@@ -1,30 +1,24 @@
 function [traj] = readTrajPoint_scanning(varargin)
-% 
+%
 %
 % Example:
-% 
+%
 % traj = readTrajPoint_scanning('../../test_data/',101000,101025,3);
 %
 
-nCol = 33; % for scanning
+% nCol = 33; % for scanning there are two options:
+% with derivatives nCol = 33;
+% without derivatives nCol = 11;
+% we do automatic discovery using the first line of the first non-empty file
+%
+
+delimiter = char(9); % those files are written with '\t' (tab)
+
+%
 % see
 % https://github.com/3dptv/3d-ptv-post-process/blob/scanning_Oct2014/scanning_Oct2014/list_of_output_columns.jpg
- 
 
-traj = struct(...
-    'xf',[],'yf',[],'zf',[],...
-    'uf',[],'vf',[],'wf',[],...
-    'axf',[],'ayf',[],'azf',[],...
-    'omegax',[],'omegay',[],'omegaz',[],...
-    's11',[],'s12',[],'s13',[],...
-    's22',[],'s23',[],'s33',[],...
-    'ut',[],'vt',[],'wt',[],...
-    'daxdx',[],'daxdy',[],'daxdz',[],...
-    'daydx',[],'daydy',[],'daydz',[],...
-    'dazdx',[],'dazdy',[],'dazdz',[],...
-    'trajid',0,'t',[],'particle_id',0);
 
-fieldNames = fieldnames(traj);
 
 if nargin ~= 4 % no inputs
     
@@ -50,7 +44,7 @@ if nargin ~= 4 % no inputs
     cd(wd);
     
     MINLENGTH = 3;
-
+    
     
 else
     pathname = varargin{1};
@@ -62,6 +56,52 @@ end
 fprintf(1,'Wait please ...  \n ')
 disp('');
 trajIndx = 1;
+
+
+% discover the number of columns:
+% find the first non-empty file
+% read the number of columns
+
+for n = firstFileIndx:lastFileIndx
+    fid = fopen(sprintf('%s%s%s%d',pathname,filesep,'trajPoint.',n));
+    if fid == -1, continue, end
+    tLines = fgets(fid);
+    if isempty(tLines), continue, end; % to next file
+    nCol = numel(strfind(tLines,delimiter)) + 1;
+    if nCol == 11 || nCol == 33
+        break;
+    end
+end
+
+if nCol == 33
+    traj = struct(...
+        'xf',[],'yf',[],'zf',[],...
+        'uf',[],'vf',[],'wf',[],...
+        'axf',[],'ayf',[],'azf',[],...
+        'omegax',[],'omegay',[],'omegaz',[],...
+        's11',[],'s12',[],'s13',[],...
+        's22',[],'s23',[],'s33',[],...
+        'ut',[],'vt',[],'wt',[],...
+        'daxdx',[],'daxdy',[],'daxdz',[],...
+        'daydx',[],'daydy',[],'daydz',[],...
+        'dazdx',[],'dazdy',[],'dazdz',[],...
+        'quality',[],...
+        't',[],'particle_id',0,'trajid',0); % we have 34 fields, trajid is 33+1
+elseif nCol == 11
+    traj = struct(...
+        'xf',[],'yf',[],'zf',[],...
+        'uf',[],'vf',[],'wf',[],...
+        'axf',[],'ayf',[],'azf',[],...
+        't',[],'particle_id',0,'trajid',0); % we have 12 fields, trajid is 11+1
+    
+else
+    error('Wrong number of columns in the trajPoint file, expect 11 or 33');
+end
+
+fieldNames = fieldnames(traj);
+
+
+
 
 % Loop through all files
 for n = firstFileIndx:lastFileIndx
@@ -76,13 +116,13 @@ for n = firstFileIndx:lastFileIndx
     if fid == -1, error('no file'), continue, end
     f = fscanf(fid,'%g',[nCol inf]); % It has two rows now.
     if isempty(f), continue , end; % if the file is empty, skip to next file
-    f = f(1:33,:)';
+    f = f(1:nCol,:)';
     fclose(fid);
     
     
     
     % prepare indices of the single trajectories
-    [startTraj, endTraj, lenTraj] = singleTraj(f(:,32));
+    [startTraj, endTraj, lenTraj] = singleTraj(f(:,nCol-1));
     
     % pick only long trajectories, longer than ' MINLENGTH '
     longTraj = find(lenTraj >= MINLENGTH);
@@ -100,19 +140,19 @@ for n = firstFileIndx:lastFileIndx
     for i = 1:numLongTraj
         
         
-        for q = 1:30 
+        for q = 1:nCol
             traj(trajIndx).(fieldNames{q})(1:lenTraj(i)) = ...
                 f(startTraj(i):endTraj(i),q)';
         end
-
+        
         traj(trajIndx).t(1:lenTraj(i)) = ...
-            f(startTraj(i):endTraj(i),32)'+runIndx;
+            f(startTraj(i):endTraj(i),nCol-1)'+runIndx;
         
         traj(trajIndx).trajid(1:lenTraj(i)) = repmat(trajIndx,1,lenTraj(i)).';
         
-        % last column is the id of the particle in ptv_is files
-        traj(trajIndx).(fieldNames{33})(1:lenTraj(i)) = ...
-                f(startTraj(i):endTraj(i),33)';
+%         % last column is the id of the particle in ptv_is files
+%         traj(trajIndx).(fieldNames{nCol})(1:lenTraj(i)) = ...
+%             f(startTraj(i):endTraj(i),nCol)';
         
         trajIndx = trajIndx + 1;
     end

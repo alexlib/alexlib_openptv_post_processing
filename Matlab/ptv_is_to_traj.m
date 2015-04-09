@@ -9,9 +9,9 @@ function [varargout] = ptv_is_to_traj(directory,first,last,minlength,dt)
 %
 % Example:
 %{
-    directory = '../test_data'
-    data = ptv_is_to_traj(directory,10000,10004,3,1/100)
-    plot_long_trajectories(data,5)
+    directory = '../../3d-ptv-post-process/test_data/'
+    data = ptv_is_to_traj(directory,101000,101025,20,1/100)
+    plot_long_trajectories(data,20)
 %}
 
 

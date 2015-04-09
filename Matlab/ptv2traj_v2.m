@@ -44,8 +44,8 @@ end
 [len,~,first,last] = mttrlencode(tmp(:,4));
 idl = find(len > minLength); % only long ones
 
-traj = repmat(struct('x',[],'y',[],'z',[],'u',[],'v',[],'w',[],...
-    'ax',[],'ay',[],'az',[],'t',[],'trajid',[]),length(idl),1);
+traj = repmat(struct('xf',[],'yf',[],'zf',[],'uf',[],'vf',[],'wf',[],...
+    'axf',[],'ayf',[],'azf',[],'t',[],'trajid',[]),length(idl),1);
 
 trajLen = zeros(length(idl),1);
 h = waitbar(0,'Please wait ...');
@@ -72,7 +72,7 @@ for k = 1:length(idl)
     [traj(k).zf,traj(k).wf,traj(k).azf] = smoothspline(traj(k).t*dt,traj(k).zf);
     
 %     traj(k).uf = gradient5(traj(k).x,traj(k).t*dt);
-%     traj(k).v = gradient5(traj(k).y,traj(k).t*dt);
+%     traj(k).vf = gradient5(traj(k).y,traj(k).t*dt);
 %     traj(k).wf = gradient5(traj(k).z,traj(k).t*dt);
 %     
 %     traj(k).ax = gradient5(traj(k).u,traj(k).t*dt);
