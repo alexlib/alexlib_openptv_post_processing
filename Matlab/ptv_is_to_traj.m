@@ -1,4 +1,18 @@
 function [varargout] = ptv_is_to_traj(directory,first,last,minlength,dt)
+% TRAJ = PTV_IS_TO_TRAJ(DIRECTORY,FIRST,LAST,MINLENGTH,DT)
+% reads the ptv_is.* files from the directory and 
+% converts it to trajectories into a structure TRAJ
+% Optional arguments:
+% FIRST,LAST - numbers of the frames from which to which to read
+% MINLENGTH - minimum length of trajectory
+% DT - 1/frame rate of the recording, time interval between two frames
+%
+% Example:
+%{
+    directory = '../test_data'
+    data = ptv_is_to_traj(directory,10000,10004,3,1/100)
+    plot_long_trajectories(data,5)
+%}
 
 
 if nargin < 5

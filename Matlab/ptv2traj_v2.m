@@ -57,9 +57,9 @@ for k = 1:length(idl)
     i = idl(k);
     waitbar(k/length(idl),h);
     
-    traj(k).x = tmp(first(i):last(i),1);
-    traj(k).y = tmp(first(i):last(i),2);
-    traj(k).z = tmp(first(i):last(i),3);
+    traj(k).xf = tmp(first(i):last(i),1);
+    traj(k).yf = tmp(first(i):last(i),2);
+    traj(k).zf = tmp(first(i):last(i),3);
     traj(k).trajid  = tmp(first(i):last(i),4);
     traj(k).t  = tmp(first(i):last(i),5);
     
@@ -67,9 +67,9 @@ for k = 1:length(idl)
 %     [~,traj(k).y] = spaps(traj(k).t,traj(k).y,0);
 %     [~,traj(k).zf] = spaps(traj(k).t,traj(k).zf,0);
 
-    [traj(k).x,traj(k).u,traj(k).ax] = smoothspline(traj(k).t*dt,traj(k).x);
-    [traj(k).y,traj(k).v,traj(k).ay] = smoothspline(traj(k).t*dt,traj(k).y);
-    [traj(k).z,traj(k).w,traj(k).az] = smoothspline(traj(k).t*dt,traj(k).z);
+    [traj(k).xf,traj(k).uf,traj(k).axf] = smoothspline(traj(k).t*dt,traj(k).xf);
+    [traj(k).yf,traj(k).vf,traj(k).ayf] = smoothspline(traj(k).t*dt,traj(k).yf);
+    [traj(k).zf,traj(k).wf,traj(k).azf] = smoothspline(traj(k).t*dt,traj(k).zf);
     
 %     traj(k).uf = gradient5(traj(k).x,traj(k).t*dt);
 %     traj(k).v = gradient5(traj(k).y,traj(k).t*dt);
