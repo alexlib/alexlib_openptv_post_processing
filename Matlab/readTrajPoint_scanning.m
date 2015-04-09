@@ -4,14 +4,7 @@ function [traj] = readTrajPoint_scanning(varargin)
 % Example:
 % 
 % traj = readTrajPoint_scanning('../../test_data/',101000,101025,3);
-% 
-% path1 = '/Volumes/Seagate/Polymers/res_water_freq_0_430_tol_0_5_10000_11858'
-% path2 = '/Volumes/Seagate/Polymers/res_5ppm_freq_0_430_tol_0_5_10000_12584'
-% traj = readTrajPoint_scanning(path1,10000,11858,10);
-% save(fullfile(path1,'traj.mat'))
-% traj = readTrajPoint_scanning(path2,10000,12584,10);
-% save(fullfile(path2,'traj.mat'))
-
+%
 
 nCol = 33; % for scanning
 % see
