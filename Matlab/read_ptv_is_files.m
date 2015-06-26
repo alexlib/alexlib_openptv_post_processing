@@ -26,34 +26,24 @@ tmp = tmp(2:end,1:5);
 % tmp = tmp(ind,:);
 
 % if ~isempty(tmp)
+data(1).prev = tmp(:,1);
+data(1).next = tmp(:,2);
 
-data = struct('prev',[],'next',[],'xr',[],'yr',[],'zr',[],'t',[]);
+data(1).xr = tmp(:,3);
+data(1).yr = tmp(:,4);
+data(1).zr = tmp(:,5);
 
-data = repmat(data,last-first+1,1);
+[junk,junk,ext,junk] = fileparts(fullfile(directory,d(1).name));
+data(1).t = str2double(ext(2:end));
+% end
 
-% data(1).prev = tmp(:,1);
-% data(1).next = tmp(:,2);
-% 
-% data(1).xr = tmp(:,3);
-% data(1).yr = tmp(:,4);
-% data(1).zr = tmp(:,5);
-% 
-% [~,~,ext,junk] = fileparts(fullfile(directory,d(1).name));
-% data(1).t = str2double(ext(2:end))*ones(length(tmp),1);
-% data(1).trajid = -999 * ones(length(tmp),1);
-% 
-% % end
-% 
-% disp(last - first + 1);
-% data(last-first+1) = data(1);
+last-first+1
+data(last-first+1) = data(1);
 
-for k = first:last
+for k = first+1:last
     % for i = 1:40000
     i = k - first + 1;
     tmp = textread(fullfile(directory,d(i).name));
-    [~,~,ext] = fileparts(fullfile(directory,d(i).name));
-    %[~,~,ext,~] was changed to [~,~,ext]. otherwise, it gives an error. by
-    %Jimmy
     numRows = tmp(1);
     tmp = tmp(2:end,1:5);
 
@@ -69,7 +59,7 @@ for k = first:last
     data(i).yr = tmp(:,4);
     data(i).zr = tmp(:,5);
 
-    data(i).t = str2num(ext(2:end))*ones(length(tmp),1);
+    data(i).t = data(i-1).t + 1;
     clear tmp
     %
 end

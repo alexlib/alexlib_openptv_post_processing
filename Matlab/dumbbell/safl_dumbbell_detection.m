@@ -1,34 +1,31 @@
-function tau_dumbbell_detection_db_v3(directory,n_img,first,last,withbg,verbose)
-% tau_dumbbell_detection_db_v2(DIRECTORY,N_IMG,FIRST,LAST)
-% this routine is written to binary filter round objects from an image
-% the objects should have a radius that is always slightly larger than
-% what is defined in 'min_pixel_radius'
-% In TAU case we modified the original detection_proc_matlab_db.m to
-% tune it for the 'poor' images taken with our dumbbell.
-% in principle we do not use imextendedmax, but rather the simple threshold
-% and the size filter.
+function safl_dumbbell_detection(directory,n_img,first,last,withbg,verbose)
+% SAFL_dumbbell_detection(DIRECTORY,N_IMG,FIRST,LAST)
+%
+% The user selects manually the two balls of the dumbell and then uses
+% those as the template matching for the rest of the files in the directory
 %
 % Example:
-% directory = 'e:\Resuspension\Calibration Files\';
-% first = 10674;
-% last = 10976;
-% withbg = 0; % 1 if you have a background image to subtract, named cam[N]_bg.tif, N = 1..4 
-% verbose = 0; % 1 if you want to see the image after marking the
-% dumbbells, slow 
-% % Initial step - create "ball" images by cropping the first image
-%   for cameraNum = 1:4
-%     tau_dumbbell_detection_db_v3(directory,cameraNum,first,first,withbg,verbose);
-%   end
-%  
-% for cameraNum = 1:4
-%   tau_dumbbell_detection_db_v3(directory,cameraNum,first,last,withbg,verbose)
-% end
+%{
+directory = 'C:\PTV\Experiments\Sep13\db2400'
+first = 1;
+last = 399;
+withbg = 0; % 1 if you have a background image to subtract, named cam[N]_bg.tif, N = 1..4 
+verbose = 1; % 1 if you want to see the images, slow 
+% Initial step - create "ball" images by cropping the first image
+  for cameraNum = 1:4
+    safl_dumbbell_detection(directory,cameraNum,first,first,withbg,verbose);
+  end
+ 
+verbose = 0; % too slow for large sets
+for cameraNum = 1:4
+  safl_dumbbell_detection(directory,cameraNum,first,last,withbg,verbose)
+end
+%}
 
 % History:
-% - v1.0 is updated in TAU on 24.06.10 to use our dumbbell, for Tracey
-% - v2.0 is updated for the data in Scene 45, 07.07.10
-% - v3.0 is updated for the data in Scene 45 and 23, using normxcorr, 07.07.10
-% - v3.0 is updated for the data of Dikla, 07.11.10
+% - Sep 13, 2012 - based on the tau_dumbbell_detection_db_v3.m, updated for
+% SAFL
+
 
 
 % Authors: Alex Liberzon and modified by Beat L?thi
@@ -74,15 +71,19 @@ try
     load(sprintf('%s%scam%d.mat',directory,filesep,n_img));
 catch
 
-    im = imread([directory,filesep,'cam',int2str(n_img),'.',sprintf('%05d',first)]);
+    im = imread([directory,filesep,'cam',int2str(n_img),'.',sprintf('1%06d',first)]);
     if withbg
         im1 = (imlincomb(1,im,-.8,bg));
     else
-        im1 = im; 
+        im1 = im;  % SAFL camera is dark
     end
-        
-    [ball1,rect1]  = imcrop(im1);
-    [ball2,rect2]  = imcrop(im1);
+    
+    figure, imshow(imadjust(im1),[]);
+    [~,rect1]  = imcrop;
+    ball1 = imcrop(im1,rect1);
+    imshow(imadjust(im1),[]);
+    [~,rect2]  = imcrop;
+    ball2 = imcrop(im1,rect2);
 
     save(sprintf('%s%scam%d.mat',directory,filesep,n_img),'ball1','ball2');
 end
@@ -95,7 +96,7 @@ for filenum = first:last
 
     % read the image
     % im = imread([directory,filesep,'db2_',int2str(n_img),'.',sprintf('%02d',filenum)]);
-    imname = [directory,filesep,'cam',int2str(n_img),'.',sprintf('%05d',filenum)];
+    imname = [directory,filesep,'cam',int2str(n_img),'.',sprintf('1%06d',filenum)];
     im = imread(imname);
     if withbg
         im1 = (imlincomb(1,im,-1,bg));
@@ -115,7 +116,7 @@ for filenum = first:last
     stats(1).MajorAxisLength = size(ball1,1);
     stats(1).MinorAxisLength = size(ball1,2);
     stats(1).sumg = sum(ball1(:));
-    stats(1).Area = prod(size(ball1));
+    stats(1).Area = numel(ball1);
 
 
     stats(2).Centroid(1) = j2;
@@ -123,29 +124,7 @@ for filenum = first:last
     stats(2).MajorAxisLength = size(ball2,1);
     stats(2).MinorAxisLength = size(ball2,2);
     stats(2).sumg = sum(ball2(:));
-    stats(2).Area = prod(size(ball2));
-    %
-    %     catch
-    %         disp('error in file')
-    %         disp([n_img filenum])
-    %
-    %         stats(1).Centroid(1) = 0;
-    %         stats(1).Centroid(2) = 0;
-    %
-    %         stats(1).MajorAxisLength = 999;
-    %         stats(1).MinorAxisLength = 999;
-    %         stats(1).sumg = 999;
-    %         stats(1).Area = 999;
-    %
-    %         stats(2).Centroid(1) = 0;
-    %         stats(2).Centroid(2) = 0;
-    %         stats(2).MajorAxisLength = 999;
-    %         stats(2).MinorAxisLength = 999;
-    %         stats(2).sumg = 999;
-    %         stats(2).Area = 999;
-    %
-    %
-    %     end
+    stats(2).Area = numel(ball2);
     fname = [imname,'_targets'];
     write_targets(fname,stats);
     if verbose

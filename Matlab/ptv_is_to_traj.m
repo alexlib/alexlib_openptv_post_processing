@@ -1,34 +1,16 @@
-function [varargout] = ptv_is_to_traj(directory,first,last,minlength,dt)
-% TRAJ = PTV_IS_TO_TRAJ(DIRECTORY,FIRST,LAST,MINLENGTH,DT)
-% reads the ptv_is.* files from the directory and 
-% converts it to trajectories into a structure TRAJ
-% Optional arguments:
-% FIRST,LAST - numbers of the frames from which to which to read
-% MINLENGTH - minimum length of trajectory
-% DT - 1/frame rate of the recording, time interval between two frames
-%
-% Example:
-%{
-    directory = '../../3d-ptv-post-process/test_data/'
-    data = ptv_is_to_traj(directory,101000,101025,20,1/100)
-    plot_long_trajectories(data,20)
-%}
-
-
-if nargin < 5
-    dt = 1; % default dt is not known
-end
-if nargin < 4
-    minlength = 5; % shortest trajectory is 5 frames
-end
+function [varargout] = ptv_is_to_traj(directory,first,last)
+% directory = 'C:\Documents and Settings\user\My Documents\People\ETH\Beat\colloidbreakage\Colloid\Colloid\ptv_is';
+% directory = 'c:\PTV\Experiments\res_128_Re1435ptvis\'
+% directory = 'c:\PTV\Experiments\res_scene126_Re_890\'
+% directory = 'c:\PTV\Experiments\res_scene130_Re1920\';
+% directory = '/Users/alex/Desktop/res25'; % resuspension project, Aug 2, 2010
 
 disp('Reading ...')
-if nargin == 1
+if nargin < 3
     data = read_ptv_is_files(directory);
 else
     data = read_ptv_is_files(directory,first,last);
 end
-
 disp('Done .')
 save tmp data
 disp('Building trajectories')
@@ -36,9 +18,7 @@ newdata = building_trajectories(data);
 save tmp newdata
 disp('Done')
 disp('PTV to Traj')
-
-    
-[traj,trajLen] = ptv2traj_v2(newdata,minlength,dt);
+[traj,trajLen] = ptv2traj_v2(newdata,5,1/160);
 save tmp traj
 disp('Done')
 traj = ensure_order_traj(traj);

@@ -19,15 +19,12 @@ elseif nargin < 3
 end
 
 
-% this moved into original reading of ptv_is_files
-% probably one needs a fix for other files, e.g. xuap
-% Alex, 31-Jan-2013
 
-% for i = 1:length(ptv)
-%     if length(ptv(i).xr) > 1
-%         ptv(i).t = repmat(ptv(i).t,[length(ptv(i).xr),1]);
-%     end
-% end
+for i = 1:length(ptv)
+    if length(ptv(i).xr) > 1
+        ptv(i).t = repmat(ptv(i).t,[length(ptv(i).xr),1]);
+    end
+end
 
 if isnan(dt)
     dt = min(diff(t));
@@ -41,17 +38,13 @@ tmp = sortrows(tmp,4);
 if any(tmp(:,4) == -999)
     tmp = tmp(find(tmp(:,4)==-999,1,'last')+1:end,:); % cut out -999
 end
-[len,~,first,last] = mttrlencode(tmp(:,4));
+[len,val,first,last] = mttrlencode(tmp(:,4));
 idl = find(len > minLength); % only long ones
 
 traj = repmat(struct('xf',[],'yf',[],'zf',[],'uf',[],'vf',[],'wf',[],...
     'axf',[],'ayf',[],'azf',[],'t',[],'trajid',[]),length(idl),1);
 
-trajLen = zeros(length(idl),1);
 h = waitbar(0,'Please wait ...');
-
-
-
 for k = 1:length(idl)
     
     i = idl(k);
@@ -63,41 +56,21 @@ for k = 1:length(idl)
     traj(k).trajid  = tmp(first(i):last(i),4);
     traj(k).t  = tmp(first(i):last(i),5);
     
-%     [~,traj(k).x] = spaps(traj(k).t,traj(k).x,0);
-%     [~,traj(k).y] = spaps(traj(k).t,traj(k).y,0);
-%     [~,traj(k).zf] = spaps(traj(k).t,traj(k).zf,0);
-
-    [traj(k).xf,traj(k).uf,traj(k).axf] = smoothspline(traj(k).t*dt,traj(k).xf);
-    [traj(k).yf,traj(k).vf,traj(k).ayf] = smoothspline(traj(k).t*dt,traj(k).yf);
-    [traj(k).zf,traj(k).wf,traj(k).azf] = smoothspline(traj(k).t*dt,traj(k).zf);
+    [b,traj(k).xf] = spaps(traj(k).t,traj(k).xf,0);
+    [b,traj(k).yf] = spaps(traj(k).t,traj(k).yf,0);
+    [b,traj(k).zf] = spaps(traj(k).t,traj(k).zf,0);
     
-%     traj(k).uf = gradient5(traj(k).x,traj(k).t*dt);
-%     traj(k).vf = gradient5(traj(k).y,traj(k).t*dt);
-%     traj(k).wf = gradient5(traj(k).z,traj(k).t*dt);
-%     
-%     traj(k).ax = gradient5(traj(k).u,traj(k).t*dt);
-%     traj(k).ayf = gradient5(traj(k).v,traj(k).t*dt);
-%     traj(k).az = gradient5(traj(k).wf,traj(k).t*dt);
+    traj(k).uf = gradient5(traj(k).xf,traj(k).t*dt);
+    traj(k).vf = gradient5(traj(k).yf,traj(k).t*dt);
+    traj(k).wf = gradient5(traj(k).zf,traj(k).t*dt);
+    
+    traj(k).axf = gradient5(traj(k).uf,traj(k).t*dt);
+    traj(k).ayf = gradient5(traj(k).vf,traj(k).t*dt);
+    traj(k).azf = gradient5(traj(k).wf,traj(k).t*dt);
     
     trajLen(k) = len(i);
 end
 close(h)
-
-function [ys,df,ddf] = smoothspline(x,y)
-% w = ones(size(x)); w([1 end]) = 1.e-5;
-% [sp,ys] = spaps(x,y, 1.e-2, w, 3);
-% ys = smooth1q(y,'dct');
-% [sp,ys] = spaps(x,y,1);
-% h = x(2) - x(1);
-% p = 1/(1 + h^3/6);
-% [sp] = csaps(x,y,p);
-% sp = csape(x,y,'variational');
-
-l = min(21,floor(length(x)/5));
-sp = spap2(l,4,x,y);
-ys = fnval(sp,x);
-df = fnval(fnder(sp),x);
-ddf = fnval(fnder(sp,2),x);
 
 
 
