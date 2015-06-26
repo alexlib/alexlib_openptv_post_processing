@@ -1,22 +1,24 @@
-function [traj,trajLen] = ptv2traj(ptv,minLength)
-% ptv2TRAJ converts structure from ptv where every element is the particles
+function [traj,trajLen] = ptv2traj_v2(ptv,minLength,dt)
+% ptv2TRAJ_v2 converts structure from ptv where every element is the particles
 % in a specific time (i.e. per frame, with trajectory id's)
 % to the structure TRAJ in which every element of the structure is a
 % trajectory in time and space.
 
 % Author: Alex Liberzon, alex.dot.liberzon.at.gmail.dot.com
-% Last modified: 25-Feb-2010
+% Created: 2-Apr-2011
+% Last modified Dec 1, 2012
+% - should work using sortrows and diff of the last column approach
+% - fixed the bug when no -999 appeared
+% - added close(h) to remove the waitbar
 
 if nargin < 2
-    minLength = 2;
+    minLength = 3;
+    dt = NaN;
+elseif nargin < 3
+    dt = NaN;
 end
 
-trajid = cat(2,ptv.trajid);
-trajLen = trajid*0;
 
-xf = cat(1,ptv.xr);
-yf = cat(1,ptv.yr);
-zf = cat(1,ptv.zr);
 
 for i = 1:length(ptv)
     if length(ptv(i).xr) > 1
@@ -24,52 +26,51 @@ for i = 1:length(ptv)
     end
 end
 
-t = cat(1,ptv.t);
-dt = min(diff(t));
-
-
-unique_trajid = unique(trajid);
-unique_trajid(unique_trajid < 0)= [];
+if isnan(dt)
+    dt = min(diff(t));
+end
+try
+    tmp = cat(2,cat(1,ptv.xr),cat(1,ptv.yr),cat(1,ptv.zr),cat(2,ptv.trajid).',cat(1,ptv.t));
+catch
+    tmp = cat(2,cat(1,ptv.xr),cat(1,ptv.yr),cat(1,ptv.zr),cat(1,ptv.trajid),cat(1,ptv.t));
+end
+tmp = sortrows(tmp,4);
+if any(tmp(:,4) == -999)
+    tmp = tmp(find(tmp(:,4)==-999,1,'last')+1:end,:); % cut out -999
+end
+[len,val,first,last] = mttrlencode(tmp(:,4));
+idl = find(len > minLength); % only long ones
 
 traj = repmat(struct('xf',[],'yf',[],'zf',[],'uf',[],'vf',[],'wf',[],...
-    'axf',[],'ayf',[],'azf',[],'t',[],'trajid',[]),length(unique_trajid),1);
+    'axf',[],'ayf',[],'azf',[],'t',[],'trajid',[]),length(idl),1);
 
-i = 0;
-for k = 1:length(unique_trajid)
-    id = find(trajid == unique_trajid(k));
-    if length(id) > minLength
-        i = i + 1;
-        trajLen(i) = length(id);
-        
-        [b,xi] = spaps(t(id),xf(id),0);
-        [b,yi] = spaps(t(id),yf(id),0);
-        [b,zi] = spaps(t(id),zf(id),0);
-        
-        traj(i).xf = xi;
-        traj(i).yf = yi;
-        traj(i).zf = zi;
-        
-        
-        traj(i).uf = gradient5(traj(i).xf,t(id)*dt);
-        traj(i).vf = gradient5(traj(i).yf,t(id)*dt);
-        traj(i).wf = gradient5(traj(i).zf,t(id)*dt);
-        
-        traj(i).axf = gradient5(traj(i).uf,t(id)*dt);
-        traj(i).ayf = gradient5(traj(i).vf,t(id)*dt);
-        traj(i).azf = gradient5(traj(i).wf,t(id)*dt);
-        
-        
-        traj(i).t = t(id);
-        traj(i).trajid = trajid(id);
-        
-        xf(id) = [];
-        yf(id) = [];
-        zf(id) = [];
-        trajid(id) = [];
-    end
+h = waitbar(0,'Please wait ...');
+for k = 1:length(idl)
+    
+    i = idl(k);
+    waitbar(k/length(idl),h);
+    
+    traj(k).xf = tmp(first(i):last(i),1);
+    traj(k).yf = tmp(first(i):last(i),2);
+    traj(k).zf = tmp(first(i):last(i),3);
+    traj(k).trajid  = tmp(first(i):last(i),4);
+    traj(k).t  = tmp(first(i):last(i),5);
+    
+    [b,traj(k).xf] = spaps(traj(k).t,traj(k).xf,0);
+    [b,traj(k).yf] = spaps(traj(k).t,traj(k).yf,0);
+    [b,traj(k).zf] = spaps(traj(k).t,traj(k).zf,0);
+    
+    traj(k).uf = gradient5(traj(k).xf,traj(k).t*dt);
+    traj(k).vf = gradient5(traj(k).yf,traj(k).t*dt);
+    traj(k).wf = gradient5(traj(k).zf,traj(k).t*dt);
+    
+    traj(k).axf = gradient5(traj(k).uf,traj(k).t*dt);
+    traj(k).ayf = gradient5(traj(k).vf,traj(k).t*dt);
+    traj(k).azf = gradient5(traj(k).wf,traj(k).t*dt);
+    
+    trajLen(k) = len(i);
 end
-traj(i+1:end) = [];
-trajLen(i+1:end) = [];
+close(h)
 
 
 

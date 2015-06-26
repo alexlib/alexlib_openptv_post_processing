@@ -18,8 +18,8 @@ newdata = building_trajectories(data);
 save tmp newdata
 disp('Done')
 disp('PTV to Traj')
-[traj,trajLen] = ptv2traj_v2(newdata,5,1/160);
-save tmp traj
+[traj,trajLen] = ptv2traj(newdata,5,1/160);
+save tmp traj trajLen
 disp('Done')
 traj = ensure_order_traj(traj);
 save tmp traj
