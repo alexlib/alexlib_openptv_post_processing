@@ -1,4 +1,11 @@
 function write_targets(filename,stats)
+% WRITE_TARGETS(FILENAME,STATS)
+% writes the data in the STATS structure (see REGIONPROPS)
+% into the _targets file named FILENAME
+% See also: find_balls, tau_dumbbell that create structures
+%
+
+
 
 if ~isempty(stats)
     xy = [stats.Centroid]';
