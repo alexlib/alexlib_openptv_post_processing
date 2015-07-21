@@ -1,4 +1,4 @@
-function [varargout] = ptv_is_to_traj(directory,first,last)
+function [varargout] = ptv_is_to_traj(directory,minlength,dt,first,last)
 % directory = 'C:\Documents and Settings\user\My Documents\People\ETH\Beat\colloidbreakage\Colloid\Colloid\ptv_is';
 % directory = 'c:\PTV\Experiments\res_128_Re1435ptvis\'
 % directory = 'c:\PTV\Experiments\res_scene126_Re_890\'
@@ -6,7 +6,12 @@ function [varargout] = ptv_is_to_traj(directory,first,last)
 % directory = '/Users/alex/Desktop/res25'; % resuspension project, Aug 2, 2010
 
 disp('Reading ...')
-if nargin < 3
+if nargin == 1 % only directory name
+    minlength = 5; 
+    dt = 1;
+end
+
+if nargin < 5
     data = read_ptv_is_files(directory);
 else
     data = read_ptv_is_files(directory,first,last);
@@ -18,7 +23,7 @@ newdata = building_trajectories(data);
 save tmp newdata
 disp('Done')
 disp('PTV to Traj')
-[traj,trajLen] = ptv2traj(newdata,5,1/160);
+[traj,trajLen] = ptv2traj(newdata,minlength,dt);
 save tmp traj trajLen
 disp('Done')
 traj = ensure_order_traj(traj);
