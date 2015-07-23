@@ -16,7 +16,7 @@ end
 
 % wd = cd;
 % cd(directory);
-d = dir(fullfile(directory,'g_xuap.*'));
+d = dir(fullfile(directory,'xuap.*'));
 if nargin < 2
     first = 1;
 end
