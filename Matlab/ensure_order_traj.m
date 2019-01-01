@@ -11,5 +11,5 @@ t = zeros(length(traj),1);
 for i = 1:length(traj)
     t(i) = traj(i).t(1);
 end
-[t,ind] = sort(t);
+[~,ind] = sort(t);
 traj = traj(ind);
